@@ -80,3 +80,11 @@ void iso::texture::unloadTexture(void)
 		// TODO: error double unload
 	}
 }
+
+void iso::texture::draw(sf::RenderWindow &window, float x, float y){
+	tempSprite.setTexture(*tex);
+	tempSprite.setPosition(x, y);
+	window.draw(tempSprite);
+}
+
+sf::Sprite iso::texture::tempSprite;

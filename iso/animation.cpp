@@ -1,9 +1,8 @@
 #include "animation.h"
 
 
-iso::animation::animation(iso::texture* textr, unsigned int msDelay = 0, bool doesLoop = false)
+iso::animation::animation(iso::texture* textr, unsigned int msDelay, bool doesLoop)
 {	
-	iso::texture* temp;
 	rate = msDelay;
 	loops = doesLoop;
 	curTextr = 0;
@@ -27,11 +26,11 @@ void iso::animation::addTexture(iso::texture* textr)
 }
 
 void iso::animation::setLoop(bool doesLoop){
-
+	loops = doesLoop;
 }
 
 bool iso::animation::getLoop(void) const{
-
+	return loops;
 }
 
 void iso::animation::setMSDelay(unsigned int msDelay)
@@ -76,9 +75,4 @@ iso::texture* iso::animation::update(unsigned int msElapsed)
 void iso::animation::reset(void){
 	curTextr = 0;
 	sinceLast = 0;
-}
-
-
-
-
 }

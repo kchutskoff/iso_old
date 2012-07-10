@@ -10,22 +10,17 @@ const std::string TEXTURES_FILELIST = "textures\\list.txt";
 
 int main()
 {
+	
 	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "ISO", sf::Style::Close);
 	iso::textureDict textureDB;
 	textureDB.loadTextures(TEXTURES_FILELIST);
-	iso::texture* grass1 = textureDB.allocTexture("grass1");
-	iso::texture* grass11 = textureDB.allocTexture("grass1");
-    sf::Text text("Hello SFML");
-	sf::Sprite myGrass;
-	myGrass.setTexture(*grass1->textr(), false);
-	myGrass.setPosition(64, 64);
-	myGrass.setScale(2, 2);
-	myGrass.setRotation(25);
 
-	
+	// random drawing tests, ignore this stuff
+	iso::texture* grass0000 = textureDB.allocTexture("grass_0000"); // flat
+	iso::texture* grass1100 = textureDB.allocTexture("grass_1100");
+	iso::texture* grass1001 = textureDB.allocTexture("grass_1001");
 
-
-    while (window.isOpen())
+	while (window.isOpen())
     {
         sf::Event event;
         while (window.pollEvent(event))
@@ -35,9 +30,17 @@ int main()
         }
 
         window.clear();
-		window.draw(myGrass);
-        window.draw(text);
-		
+		grass0000->draw(window, 0, 0);
+		grass0000->draw(window, 128, 0);
+		grass0000->draw(window, 256, 0);
+		grass0000->draw(window, 64, 32);
+		grass0000->draw(window, 128+64, 32);
+		grass0000->draw(window, 256+64, 32);
+		grass0000->draw(window, 128, 64);
+		grass1100->draw(window, 256, 96);
+		grass1001->draw(window, 64, 128);
+
+
         window.display();
     }
 

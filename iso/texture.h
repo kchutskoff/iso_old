@@ -15,6 +15,8 @@ private:
 	std::string tname;
 	sf::Texture* tex;
 
+	static sf::Sprite tempSprite;
+
 public:
 	texture(std::string file, std::string name, int x, int y, unsigned int w, unsigned int h);
 	~texture(void);	
@@ -27,6 +29,7 @@ public:
 	unsigned int h(void) const;
 	std::string file(void) const;
 	std::string name(void) const;
+	void iso::texture::draw(sf::RenderWindow &window, float x, float y);
 
 protected:
 	void loadTexture(void);

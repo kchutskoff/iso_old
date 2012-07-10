@@ -1,2 +1,15 @@
-grass1 textures\environment\grass.png 0 0 128 64
-grass2 textures\environment\grass.png 0 64 128 64
+grass_0000 textures\environment\grass.png 0 0 128 128
+grass_1010 textures\environment\grass.png 128 0 128 128
+grass_0101 textures\environment\grass.png 256 0 128 128
+grass_0100 textures\environment\grass.png 0 128 128 128
+grass_1000 textures\environment\grass.png 128 128 128 128
+grass_0001 textures\environment\grass.png 256 128 128 128
+grass_0010 textures\environment\grass.png 384 128 128 128
+grass_1100 textures\environment\grass.png 0 256 128 128
+grass_1001 textures\environment\grass.png 128 256 128 128
+grass_0110 textures\environment\grass.png 256 256 128 128
+grass_0011 textures\environment\grass.png 384 256 128 128
+grass_1011 textures\environment\grass.png 0 384 128 128
+grass_1101 textures\environment\grass.png 128 384 128 128
+grass_1110 textures\environment\grass.png 256 384 128 128
+grass_0111 textures\environment\grass.png 384 384 128 128
