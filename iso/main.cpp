@@ -19,6 +19,7 @@ int main()
 	iso::texture* grass0000 = textureDB.allocTexture("grass_0000"); // flat
 	iso::texture* grass1100 = textureDB.allocTexture("grass_1100");
 	iso::texture* grass1001 = textureDB.allocTexture("grass_1001");
+	iso::texture* grass1111 = textureDB.allocTexture("grass_1111"); // alt
 
 	while (window.isOpen())
     {
@@ -31,14 +32,14 @@ int main()
 
         window.clear();
 		grass0000->draw(window, 0, 0);
-		grass0000->draw(window, 128, 0);
+		grass1111->draw(window, 128, 0);
 		grass0000->draw(window, 256, 0);
 		grass0000->draw(window, 64, 32);
 		grass0000->draw(window, 128+64, 32);
-		grass0000->draw(window, 256+64, 32);
+		grass1111->draw(window, 256+64, 32);
 		grass0000->draw(window, 128, 64);
-		grass1100->draw(window, 256, 96);
-		grass1001->draw(window, 64, 128);
+		grass1100->draw(window, 256, 64);
+		grass1001->draw(window, 64, 96);
 
 
         window.display();

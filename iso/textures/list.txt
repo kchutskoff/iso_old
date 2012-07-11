@@ -1,6 +1,7 @@
 grass_0000 textures\environment\grass.png 0 0 128 128
-grass_1010 textures\environment\grass.png 128 0 128 128
-grass_0101 textures\environment\grass.png 256 0 128 128
+grass_1111 textures\environment\grass.png 128 0 128 128
+grass_1010 textures\environment\grass.png 256 0 128 128
+grass_0101 textures\environment\grass.png 384 0 128 128
 grass_0100 textures\environment\grass.png 0 128 128 128
 grass_1000 textures\environment\grass.png 128 128 128 128
 grass_0001 textures\environment\grass.png 256 128 128 128

@@ -11,15 +11,15 @@ iso::textureDict::~textureDict(void)
 {
 }
 
-
 bool iso::textureDict::loadTextures(std::string filelist)
 {
+	const unsigned int buff_size = 128;
 	texture* temp = NULL;
 	bool error = false;
 	errno_t err;
 	FILE* f;
-	char tname[128] = "";
-	char fname[128] = "";
+	char tname[buff_size] = "";
+	char fname[buff_size] = "";
 	std::string tname_str = "";
 	std::string fname_str = "";
 	int x = 0;
@@ -36,29 +36,44 @@ bool iso::textureDict::loadTextures(std::string filelist)
 	while(!feof(f)){
 		error = false;
 		// read in values
-		if(fscanf_s(f, " %s", &tname, 128) <= 0)
+		if(fscanf_s(f, " %s", &tname, buff_size) <= 0)
 		{
 			error = true;
 		}
-		if(error || fscanf_s(f, " %s", &fname, 128) <= 0)
+		if(!error)
 		{
-			error = true;
+			if(fscanf_s(f, " %s", &fname, buff_size) <= 0)
+			{
+				error = true;
+			}
 		}
-		if(error || fscanf_s(f, " %d", &x) <= 0)
+		if(!error)
 		{
-			error = true;
+			if(fscanf_s(f, " %d", &x) <= 0)
+			{
+				error = true;
+			}
 		}
-		if(error || fscanf_s(f, " %d", &y) <= 0)
+		if(!error)
 		{
-			error = true;
+			if(fscanf_s(f, " %d", &y) <= 0)
+			{
+				error = true;
+			}
 		}
-		if(error || fscanf_s(f, " %u", &w) <= 0)
+		if(!error)
 		{
-			error = true;
+			if(fscanf_s(f, " %u", &w) <= 0)
+			{
+				error = true;
+			}
 		}
-		if(error || fscanf_s(f, " %u", &h) <= 0)
+		if(!error)
 		{
-			error = true;
+			if(fscanf_s(f, " %u", &h) <= 0)
+			{
+				error = true;
+			}
 		}
 		if(error){
 			// TODO: deal with error

@@ -23,6 +23,7 @@
 *.lib
 *.sbr
 *.sdf
+*.opensdf
 ipch/
 obj/
 [Bb]in

@@ -2,51 +2,71 @@
 #include "texture.h"
 
 
-iso::texture::texture(std::string file, std::string name, int x, int y, unsigned int w, unsigned int h)
+iso::texture::texture(std::string file, std::string name, int x, int y, unsigned int w, unsigned int h, bool isAnimated, bool loops)
 {
-	fname = file;
 	tname = name;
-	off_x = x;
-	off_y = y;
+	animate = isAnimated;
+	rate = 0;
+	curFrame = 0;
 	dim_w = w;
 	dim_h = h;
-	tex = NULL;
+	
+	// add the first frame to the vector
+	frames.push_back(data(x, y, file));
+	// we don't keey track of width and height as they should always be the same (file and coordinates can vary though, although file shouldn't as sprite maps should be used).
 }
 
 iso::texture::~texture(void)
 {
-	fname = "";
-	tname = "";
-	if(tex != NULL)
+	// go through all the frames
+	while(frames.size() > 0)
 	{
-		delete tex;
-		tex = NULL;
+		// if we haven't deallocated, delete
+		if(frames[frames.size() -1].tex != NULL)
+		{
+			delete frames[frames.size() -1].tex;
+		}
+		frames.pop_back();
 	}
 }
 
-int iso::texture::x(void) const
+void iso::texture::setRate(unsigned int MSrate)
 {
-	return off_x;
+	rate = MSrate;
 }
 
-int iso::texture::y(void) const
+unsigned int iso::texture::getRate(void) const
 {
-	return off_y;
+	return rate;
 }
 
-unsigned int iso::texture::w(void) const
+void iso::texture::setLoop(bool isLoop)
+{
+	loops = isLoop;
+}
+
+bool iso::texture::getLoop(void) const{
+	return loops;
+}
+
+void iso::texture::addFrame(std::string file, int x, int y)
+{
+	if(animate){
+		frames.push_back(data(x, y, file));
+	}else{
+		// doesn't animate, don't add textures
+		// TODO: possible error?
+	}
+}
+
+unsigned int iso::texture::width(void) const
 {
 	return dim_w;
 }
 
-unsigned int iso::texture::h(void) const
+unsigned int iso::texture::height(void) const
 {
 	return dim_h;
-}
-
-std::string iso::texture::file(void) const
-{
-	return fname;
 }
 
 std::string iso::texture::name(void) const
@@ -54,37 +74,67 @@ std::string iso::texture::name(void) const
 	return tname;
 }
 
-sf::Texture* iso::texture::textr(void) const
-{
-	return tex;
-}
-
 void iso::texture::loadTexture(void)
 {
-	if(tex == NULL)
+	for(unsigned int i = 0; i < frames.size(); ++i)
 	{
-		tex = new sf::Texture();
-		tex->loadFromFile(fname, sf::IntRect(off_x, off_y, dim_w, dim_h));
-	}else{
-		// TODO: error double load
+		if(frames[i].tex == NULL)
+		{
+			frames[i].tex = new sf::Texture();
+			frames[i].tex->loadFromFile(frames[i].fname, sf::IntRect(frames[i].off_x, frames[i].off_y, dim_w, dim_h));
+		}
 	}
 }
 
 void iso::texture::unloadTexture(void)
 {
-	if(tex != NULL)
+	for(unsigned int i = 0; i < frames.size(); ++i)
 	{
-		delete tex;
-		tex = NULL;
-	}else{
-		// TODO: error double unload
+		if(frames[i].tex != NULL){
+			delete frames[i].tex;
+			frames[i].tex = NULL;
+		}	
 	}
 }
 
-void iso::texture::draw(sf::RenderWindow &window, float x, float y){
-	tempSprite.setTexture(*tex);
-	tempSprite.setPosition(x, y);
-	window.draw(tempSprite);
+bool iso::texture::draw(sf::RenderWindow &window, float x, float y, unsigned int msElapsed){
+	// if we don't animate the texture, leave the curFrame at 0
+	if(animate){
+		sinceLast += msElapsed;
+		// multiple frames could have passed
+		while(rate <= sinceLast)
+		{
+			sinceLast -= rate;
+			curFrame++;
+		}
+		// if we loop, check to see if we need to loop back
+		if(loops){
+			// again, multiple frames could have passed (even entire animation loops)
+			while(curFrame >= frames.size())
+			{
+				curFrame-=frames.size();
+			}
+			// don't loop, so if we went over, return a null texture
+		}
+	}
+	
+	// check to make sure we haven't finished the animation or the texture isn't ready to draw for some reason
+	if((curFrame < frames.size()) && (frames[curFrame].tex != NULL))
+	{
+		tempSprite.setTexture(*frames[curFrame].tex);
+		tempSprite.setPosition(x, y);
+		window.draw(tempSprite);
+		return true;
+	}else{
+		// we can't draw it
+		return false;
+	}
+}
+
+void iso::texture::resetAnimation(void)
+{
+	curFrame = 0;
+	sinceLast = 0;
 }
 
 sf::Sprite iso::texture::tempSprite;
