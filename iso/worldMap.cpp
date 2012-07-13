@@ -71,6 +71,32 @@ bool iso::worldMap::loadFromFile(const std::string& fileName)
 		tileDict.resize(tile_count, "");
 		textureDict.resize(texture_count, "");
 		// time to read the data
+
+		std::streamoff tileLoc = file.tellg();
+		// start with the dictionaries first
+		std::streamoff dictLoc = 8 + (x_size * y_size * 4) + (object_count * 8);
+		file.seekg(dictLoc);
+
+		// tileDict
+		// start from 0
+		uint8_t buffer[13];
+		for(unsigned int i = 0; i < tile_count; ++i)
+		{
+			file.read((char*)buffer, 12);
+			tileDict[i] = (char*)buffer;
+		}
+
+		// textureDict
+		// start from 0
+		for(unsigned int i = 0; i < texture_count; ++i)
+		{
+			file.read((char*)buffer, 12);
+			textureDict[i] = (char*)buffer;
+		}
+		// default tile is at 0
+		defaultTileName = tileDict[0];
+
+		file.seekg(tileLoc);
 		
 		// tiles
 		// start from 0 as 0,0 always has to be a tile (otherwise there would be nothing, which isn't a map)
@@ -95,6 +121,10 @@ bool iso::worldMap::loadFromFile(const std::string& fileName)
 					file.close();
 					return false;
 				}
+				// get tile from dictionary
+				strcpy_s(tiles[x][y].tileName, tileDict[tiles[x][y].tile_type].c_str());
+				// update references
+				changeTileIndex(tiles[x][y].tileName, 1);
 			}
 		}
 
@@ -132,48 +162,14 @@ bool iso::worldMap::loadFromFile(const std::string& fileName)
 				file.close();
 				return false;
 			}
-
+			// load texture from dict
+			strcpy_s(tempObject.textureName, textureDict[tempObject.texture].c_str());
+			// update references
+			changeTextureIndex(tempObject.textureName, 1);
 			// add object to the tile
 			tiles[tempObject.x_pos][tempObject.y_pos].objects.push_back(tempObject);
 		}
-		// tileDict
-		// start from 0
-		uint8_t buffer[13];
-		for(unsigned int i = 0; i < tile_count; ++i)
-		{
-			file.read((char*)buffer, 12);
-			tileDict[i] = (char*)buffer;
-		}
-
-		// textureDict
-		// start from 0
-		for(unsigned int i = 0; i < texture_count; ++i)
-		{
-			file.read((char*)buffer, 12);
-			textureDict[i] = (char*)buffer;
-		}
-		// default tile is at 0
-		defaultTileName = tileDict[0];
-
-		// now to use the dictionary to set the textures and tiles
-		for(unsigned int x = 0; x < x_size; ++x)
-		{
-			for(unsigned int y = 0; y < y_size; ++y)
-			{
-				// tiles
-				// count the number of references
-				tileIndex[tileDict[tiles[x][y].tile_type]] += 1;
-				// set the string name
-				strcpy_s(tiles[x][y].tileName, tileDict[tiles[x][y].tile_type].c_str());
-				// objects
-				for(unsigned int i = 0; i < tiles[x][y].objects.size(); ++i)
-				{
-					// count the number of references
-					textureIndex[textureDict[tiles[x][y].objects[i].texture]] += 1;
-					strcpy_s(tiles[x][y].objects[i].textureName, textureDict[tiles[x][y].objects[i].texture].c_str());
-				}
-			}
-		}
+		
 		if(tileIndex.size() != tile_count)
 		{
 			// tile size isn't correct?

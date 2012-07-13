@@ -25,9 +25,9 @@ int main()
 
 	sf::Text myText;
 
-	iso::worldMap test = iso::worldMap("test", 128, 128);
-	test.writeToFile("testFile.map");
-	test.loadFromFile("testFile.map");
+	iso::worldMap test = iso::worldMap("grass", 128, 128);
+	test.writeToFile("testmap.map");
+	test.loadFromFile("testmap.map");
 
 	while (window.isOpen())
     {
