@@ -2,6 +2,8 @@
 #include "textureDict.h"
 #include "texture.h"
 #include <string>
+#include "worldMap.h"
+#include <sstream>
 
 
 const unsigned int WINDOW_WIDTH = 800;
@@ -21,6 +23,12 @@ int main()
 	iso::texture* grass1001 = textureDB.allocTexture("grass_1001");
 	iso::texture* grass1111 = textureDB.allocTexture("grass_1111"); // alt
 
+	sf::Text myText;
+
+	iso::worldMap test = iso::worldMap("test", 128, 128);
+	test.writeToFile("testFile.map");
+	test.loadFromFile("testFile.map");
+
 	while (window.isOpen())
     {
         sf::Event event;
@@ -31,6 +39,11 @@ int main()
         }
 
         window.clear();
+		unsigned int temp = sizeof(iso::worldMap::worldTile);
+		std::stringstream tempStream;
+		tempStream << temp;
+		myText.setString(tempStream.str());
+		
 		grass0000->draw(window, 0, 0);
 		grass1111->draw(window, 128, 0);
 		grass0000->draw(window, 256, 0);
@@ -40,6 +53,8 @@ int main()
 		grass0000->draw(window, 128, 64);
 		grass1100->draw(window, 256, 64);
 		grass1001->draw(window, 64, 96);
+
+		window.draw(myText);
 
 
         window.display();

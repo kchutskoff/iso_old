@@ -1,5 +1,5 @@
-ios Game Engine
-July8, 2012
+ISO - Isometric (Sort Of) Game Engine
+July 11, 2012
 Ammorth
 
 This is a work-in-progress!

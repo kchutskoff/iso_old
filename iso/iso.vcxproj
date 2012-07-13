@@ -84,11 +84,13 @@
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="textureDict.cpp" />
+    <ClCompile Include="worldMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sprite.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="textureDict.h" />
+    <ClInclude Include="worldMap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

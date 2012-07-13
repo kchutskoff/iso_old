@@ -13,10 +13,9 @@ The sections are in order.
 
     - 64 bits (from high to low)
 
-        - 1   zero bit
         - 11  x_dimension bits (width of the map)
         - 11  y_dimension bits (length of the map)
-        - 9   tile_count bits (total unique tiles used)
+        - 10  tile_count bits (total unique tiles used)
         - 20  object_count bits (total unique objects used)
         - 12  texture_count bits (total unique textures for objects used)
 
@@ -26,76 +25,79 @@ The sections are in order.
 
         - each chunk contains 32 bits (from high to low)
 
-            - 9   tile_type (lookup id for dictionary)
-            - 5   tile_orientation (the specific tile from the sprite map)
+            - 10   tile_type (lookup id for dictionary)
+            - 4   tile_orientation (the specific tile from the sprite map, combined with height)
             - 10  z_height (the base height of the tile)
             - 8   walkable (which parts of the tile are walkable)
 
-			Bit representation of the walkable tile sections (from high to low):
-			(Corners are labeled with isometric headings, rotated to cartesian for ease of explanation)
-			T.-----.R
-			 |\2|3/|
-			 |1\|/4|
-			 |--+--|
-			 |8/|\5|
-			 |/7|6\|
-			L'-----'B
-		
-    - chunks are arranged in sorted order (X0Y0, ... XnY0, X0Y1, ... XnYm)		
-	- Tile data is indexed by reading the header to determine the number of tiles in the X and Y direction
-	  and then calculating the starting byte for the tile based on its X and Y coordinate.
-	  
+            Bit representation of the walkable tile sections (from high to low):
+            (Corners are labeled with isometric headings, rotated to cartesian for ease of explanation)
+            T.-----.R
+             |\2|3/|
+             |1\|/4|
+             |--+--|
+             |8/|\5|
+             |/7|6\|
+            L'-----'B
+        
+    - chunks are arranged in sorted order (X0Y0, ... XnY0, X0Y1, ... XnYm)        
+    - Tile data is indexed by reading the header to determine the number of tiles in the X and Y direction
+      and then calculating the starting byte for the tile based on its X and Y coordinate.
+      
  == Object Data ==
 
     - (object_count), 64 bit chunks
-	
-	    - each chunk contains 64 bits (from high to low)
-		
-		    - 11  x_position (X position on the map)
-			- 11  y_position (Y position on the map)
-			- 10  z_height (Z height at the given position)
-			- 12  texture (lookup id for the dictionary)
-			- 4   draw order (up to 16 objects and their draw order can be specified on the same tile)
-			- 8   x_offset (offset texture rendering in the x-axis, from -texture_width to texture_width,
-			      normalized over -64 to 63)
-		    - 8   y_offset (offset texture rendering in the y-axis, from -texture_height to texture_height,
-			      normalized over -64 to 63)
-		
-	- chunks are arranged by (X0Y0Z0, X1Y0Z0, ... XnYmZp), making a binary search possible.
-	- offsets are designed for textures larger than 128x128 (such as trees) as the rendering assumes the
-	  origin is at the center of the texture.  You can therefore offset the texture to move the origin
-	  to another area of the texture, correcting the render location.
-	- Again, Object data is indexed by reading the header, determining the number of tiles to skip past,
-	  and then searching for the given tile with a BST.  Objects at the same location will be adjacent to
-	  each other in the file.
-		  
+    
+        - each chunk contains 64 bits (from high to low)
+        
+            - 11  x_position (X position on the map)
+            - 11  y_position (Y position on the map)
+            - 10  z_height (Z height at the given position)
+            - 12  texture (lookup id for the dictionary)
+            - 6   draw order (up to 64 objects and their draw order can be specified on the same tile)
+            - 7   x_offset (offset texture rendering in the x-axis, from -texture_width to texture_width,
+                  normalized over -64 to 63)
+            - 7   y_offset (offset texture rendering in the y-axis, from -texture_height to texture_height,
+                  normalized over -64 to 63)
+        
+    - chunks are arranged by (X0Y0, X1Y0, ... XnYm), making a binary search possible.
+    - offsets are designed for textures larger than 128x128 (such as trees) as the rendering assumes the
+      origin is at the center of the texture.  You can therefore offset the texture to move the origin
+      to another area of the texture, correcting the render location.
+    - Again, Object data is indexed by reading the header, determining the number of tiles to skip past,
+      and then searching for the given tile with a BST.  Objects at the same location will be adjacent to
+      each other in the file.
+          
  == Texture Dictionary ==
  
     - (tile_count) 96 bit chunks
-	
-	    - 12 bytes (contains the ASCII name of the tile group for the given tile lookup id)
-		
-	- The chunks are sorted by lookup id (which is continuous)
-	- Again, Dictionary elements are indexed by reading the header, determining the number of tiles and
-	  objects to skip past, and then skipping to the entry based on the tile id.
-	
+    
+        - 12 bytes (contains the ASCII name of the tile group for the given tile lookup id)
+        
+    - The chunks are sorted by lookup id (which is continuous)
+    - default texture is always at 0 (even if it isn't being used)
+    - Again, Dictionary elements are indexed by reading the header, determining the number of tiles and
+      objects to skip past, and then skipping to the entry based on the tile id.
+    
  == Object Dictionary ==
  
     - (object_count) 96 bit chunks
-	
-	    - 12 bytes (contains the ASCII name of the texture for the given object lookup id)
-		
-	- The chunks are sorted by lookup id (which is continuous)
-	- Again, Dictionary elements are indexed by reading the header, determining the number of tiles,
-	  objects, and tile entries to skip past, and then skipping to the entry based on the texture id.
-	  
+    
+        - 12 bytes (contains the ASCII name of the texture for the given object lookup id)
+        
+    - The chunks are sorted by lookup id (which is continuous)
+    - Again, Dictionary elements are indexed by reading the header, determining the number of tiles,
+      objects, and tile entries to skip past, and then skipping to the entry based on the texture id.
+      
  == Stats ==
  
     - All chunks can be randomly indexed once the header has been read
-	- File size varies from 64 bits (empty map) to approx 25 MB for a full map using all possible tile
-	  types, objects, and texture.
-	  
+    - File size varies from 64 bits (empty map) to approx 25 MB for a full map using all possible tile
+      types, objects, and texture.
+      
  == General Notes ==
  
     - Textures in ISO can be animated textures.  Therefore if you want your object to be animated, just
-	  use an animated texture (good for water, trees, grass, etc).
+      use an animated texture (good for water, trees, grass, etc).
+    - Maps support 2048x2048 areas with 1024 levels of height, 1024 different tile types, 1 048 576 objects
+      which use 4096 unique textures.
