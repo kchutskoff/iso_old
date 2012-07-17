@@ -118,9 +118,9 @@ iso::texture* iso::textureDict::allocTexture(std::string name)
 	return i->second.second;
 }
 
-bool iso::textureDict::releaseTexture(texture* t)
+bool iso::textureDict::releaseTexture(texture& t)
 {
-	std::map<std::string, std::pair<int, texture*>>::iterator i = dict.find(t->name());
+	std::map<std::string, std::pair<int, texture*>>::iterator i = dict.find(t.name());
 	if(i == dict.cend())
 	{
 		// not found
@@ -136,4 +136,17 @@ bool iso::textureDict::releaseTexture(texture* t)
 		i->second.second->unloadTexture();
 	}
 	return false;
+}
+
+bool iso::textureDict::addTexture(const texture& whichTexture)
+{
+	std::map<std::string, std::pair<int, texture*>>::iterator i = dict.find(whichTexture.name());
+	if(i != dict.cend())
+	{
+		// exists, cannot add
+		return false;
+	}
+	texture* tempTexture = new texture(whichTexture);
+	dict.insert( std::pair<std::string, std::pair<int, iso::texture*> >(tempTexture->name(), std::pair<int, iso::texture*>(0, tempTexture) ) );
+	return true;
 }

@@ -2,18 +2,85 @@
 
 
 iso::tileType::tileType(void)
+	:name(""), fileName(""), highTiles(NULL), lowTiles(NULL)
 {
 }
 
 iso::tileType::tileType(std::string name, std::string fileName)
 	:name(name), fileName(fileName)
 {
-	highTiles.loadFromFile(fileName, sf::IntRect(0, 0, TILE_SHEET_SIZE, TILE_SHEET_SIZE));
-	lowTiles.loadFromFile(fileName, sf::IntRect(0, TILE_SHEET_SIZE, TILE_SHEET_SIZE, TILE_SHEET_SIZE));
+	highTiles = new sf::Texture();
+	highTiles->loadFromFile(fileName, sf::IntRect(0, 0, TILE_SHEET_SIZE, TILE_SHEET_SIZE));
+	lowTiles = new sf::Texture();
+	lowTiles->loadFromFile(fileName, sf::IntRect(0, TILE_SHEET_SIZE, TILE_SHEET_SIZE, TILE_SHEET_SIZE));
+}
+
+iso::tileType::tileType(const tileType& other)
+	:name(other.name), fileName(other.fileName)
+{
+	if(other.highTiles != NULL)
+	{
+		highTiles = new sf::Texture(*other.highTiles);
+	}else
+	{
+		highTiles = NULL;
+	}
+	if(other.lowTiles != NULL)
+	{
+		lowTiles = new sf::Texture(*other.lowTiles);
+	}else
+	{
+		lowTiles = NULL;
+	}
 }
 
 iso::tileType::~tileType(void)
 {
+	if(highTiles != NULL)
+	{
+		delete highTiles;
+	}
+	if(lowTiles != NULL)
+	{
+		delete lowTiles;
+	}
+}
+
+std::string iso::tileType::getName(void) const
+{
+	return name;
+}
+std::string iso::tileType::getFileName(void) const
+{
+	return fileName;
+}
+
+bool iso::tileType::loadTile(void)
+{
+	if(highTiles != NULL && lowTiles != NULL)
+	{
+		highTiles = new sf::Texture();
+		highTiles->loadFromFile(fileName, sf::IntRect(0, 0, TILE_SHEET_SIZE, TILE_SHEET_SIZE));
+
+		lowTiles = new sf::Texture();
+		lowTiles->loadFromFile(fileName, sf::IntRect(0, TILE_SHEET_SIZE, TILE_SHEET_SIZE, TILE_SHEET_SIZE));
+
+		return true;
+	}
+	return false;
+}
+
+bool iso::tileType::unloadTile(void)
+{
+	if(highTiles != NULL && lowTiles != NULL)
+	{
+		delete highTiles;
+		highTiles = NULL;
+		delete lowTiles;
+		lowTiles = NULL;
+		return true;
+	}
+	return false;
 }
 
 bool iso::tileType::draw(sf::RenderWindow &window, float x, float y, unsigned int height, unsigned int orientation)
@@ -26,7 +93,7 @@ bool iso::tileType::draw(sf::RenderWindow &window, float x, float y, unsigned in
 	if(height % 2 == 0)
 	{
 		// even, use high tiles
-		tempSprite.setTexture(highTiles);
+		tempSprite.setTexture(*highTiles);
 		// TLBR
 		switch(orientation)
 		{

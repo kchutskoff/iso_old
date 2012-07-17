@@ -23,6 +23,8 @@ private:
 		// not storing width and height, as they should be the same for all textures
 		data(int x, int y, std::string fname)
 			:off_x(x), off_y(y), fname(fname), tex(NULL) {};
+		data(void)
+			:off_x(0), off_y(0), fname(""), tex(NULL){};
 
 		int off_x;
 		int off_y;
@@ -34,8 +36,11 @@ private:
 
 	static sf::Sprite tempSprite;
 
+	texture(void);
+
 public:
 	texture(std::string file, std::string name, int x, int y, unsigned int w, unsigned int h, bool isAnimated = false, bool isLoop = true);
+	texture(const texture& other);
 	~texture(void);	
 
 	sf::Texture* textr(void) const;
@@ -59,10 +64,8 @@ public:
 
 	void resetAnimation(void);
 
-protected:
 	void loadTexture(void);
 	void unloadTexture(void);
-	friend class textureDict;
 };
 
 }

@@ -21,10 +21,10 @@ public:
 
 	bool loadTextureList(std::string filelist);
 
+	bool addTexture(const texture& whichTexture);
+
 	texture* allocTexture(std::string name);
-	bool releaseTexture(texture* t);
-
-
+	bool releaseTexture(texture& t);
 };
 
 }

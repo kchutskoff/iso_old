@@ -12,8 +12,8 @@ class tileType
 private:
 	std::string name;
 	std::string fileName;
-	sf::Texture highTiles;
-	sf::Texture lowTiles;
+	sf::Texture* highTiles;
+	sf::Texture* lowTiles;
 
 	static sf::Sprite tempSprite;
 
@@ -36,12 +36,18 @@ private:
 
 	tileType(void);
 
-protected:
-	bool loadFromFile(std::string fileName);
-
 public:
+	
 	tileType(std::string name, std::string fileName);
+	tileType(const tileType& other);
 	~tileType(void);
+
+	bool loadFromFile(std::string fileName);
+	bool loadTile(void);
+	bool unloadTile(void);
+
+	std::string getName(void) const;
+	std::string getFileName(void) const;
 
 	bool draw(sf::RenderWindow &window, float x, float y, unsigned int height, unsigned int orientation);
 };

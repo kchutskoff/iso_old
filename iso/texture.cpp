@@ -9,6 +9,19 @@ iso::texture::texture(std::string file, std::string name, int x, int y, unsigned
 	// we don't keey track of width and height as they should always be the same (file and coordinates can vary though, although file shouldn't as sprite maps should be used).
 }
 
+iso::texture::texture(const texture& other)
+	:tname(other.tname), animate(other.animate), loops(other.loops), rate(other.rate), sinceLast(other.sinceLast), curFrame(other.curFrame), dim_w(other.dim_w), dim_h(other.dim_h)
+{
+	frames.resize(other.frames.size());
+	for(unsigned int i = 0; i < other.frames.size(); ++i)
+	{
+		frames[i].fname = other.frames[i].fname;
+		frames[i].off_x = other.frames[i].off_x;
+		frames[i].off_y = other.frames[i].off_y;
+		frames[i].tex = new sf::Texture(*(other.frames[i].tex));
+	}
+}
+
 iso::texture::~texture(void)
 {
 	// go through all the frames
