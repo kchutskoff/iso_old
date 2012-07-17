@@ -12,7 +12,7 @@ public:
 	~tileDict(void);
 
 	tileType* allocateTile(std::string tileName);
-	bool deallocateTile(tileType
+	bool releaseTile(tileType* tile);
 };
 
 }

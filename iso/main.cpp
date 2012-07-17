@@ -62,7 +62,7 @@ int main()
 		tempStream << fps;
 		myText.setString(tempStream.str());
 
-		for(int x = 0; x < 300; x++)
+		for(int x = 0; x < 1000; x++)
 		{
 			testSprite.setPosition(rand()%800, rand()%600);
 			window.draw(testSprite);
