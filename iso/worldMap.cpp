@@ -46,19 +46,21 @@ bool iso::worldMap::loadFromFile(const std::string& fileName)
 		file.seekg(std::fstream::beg);
 		// force 32 bits, as I don't know what the future holds
 		uint32_t tempInt = 0;
+
 		file.read((char*)&tempInt, sizeof(tempInt));
-		x_size = (tempInt >> 21);
-		tempInt = tempInt & ~0xFFE00000; // make sure the first 11 bits are 0
-		y_size = (tempInt >> 10);
-		tempInt = tempInt & ~0xFFFFFC00; // make sure the first 22 bits are 0
-		tile_count = tempInt;
+		x_size = EXTRACT(tempInt, Y_POS_BITS + TILE_COUNT_BITS, X_POS_BITS);
+		y_size = EXTRACT(tempInt, TILE_COUNT_BITS, Y_POS_BITS);
+		tile_count = EXTRACT(tempInt, 0, TILE_COUNT_BITS);
+
 		// read next 32 bits of the header
 		file.read((char*)&tempInt, sizeof(tempInt));
-		object_count = (tempInt >> 12);
-		tempInt = tempInt & ~0xFFFFF000; // make sure the first 20 bits are 0;
-		texture_count = tempInt;
+		object_count = EXTRACT(tempInt, TEXTURE_COUNT_BITS, OBJECT_COUNT_BITS);
+		texture_count = EXTRACT(tempInt, 0, TEXTURE_COUNT_BITS);
 		// calculate expected size of file (to make sure nothing is malformed)
-		std::streamoff maxByteSize = 8 + (x_size * y_size * 4) + (object_count * 8) + (tile_count * 12) + (texture_count * 12);
+		std::streamoff maxByteSize = ((X_POS_BITS + Y_POS_BITS + TILE_COUNT_BITS + OBJECT_COUNT_BITS + TEXTURE_COUNT_BITS) / 8 )
+			+ (x_size * y_size * (TILE_COUNT_BITS + ORIENTATION_BITS + HEIGHT_BITS + WALKABLE_BITS) / 8 )
+			+ (object_count * (X_POS_BITS + Y_POS_BITS + HEIGHT_BITS + TEXTURE_COUNT_BITS + DRAW_ORDER_BITS + X_OFF_BITS + Y_OFF_BITS) / 8 )
+			+ (tile_count * TILE_NAME_LENGTH) + (texture_count * TEXTURE_NAME_LENGTH);
 		if(fileByteSize != maxByteSize)
 		{
 			// bad file
@@ -74,7 +76,9 @@ bool iso::worldMap::loadFromFile(const std::string& fileName)
 
 		std::streamoff tileLoc = file.tellg();
 		// start with the dictionaries first
-		std::streamoff dictLoc = 8 + (x_size * y_size * 4) + (object_count * 8);
+		std::streamoff dictLoc = ((X_POS_BITS + Y_POS_BITS + TILE_COUNT_BITS + OBJECT_COUNT_BITS + TEXTURE_COUNT_BITS) / 8 )
+			+ (x_size * y_size * (TILE_COUNT_BITS + ORIENTATION_BITS + HEIGHT_BITS + WALKABLE_BITS) / 8 )
+			+ (object_count * (X_POS_BITS + Y_POS_BITS + HEIGHT_BITS + TEXTURE_COUNT_BITS + DRAW_ORDER_BITS + X_OFF_BITS + Y_OFF_BITS) / 8 );
 		file.seekg(dictLoc);
 
 		// tileDict
@@ -106,13 +110,10 @@ bool iso::worldMap::loadFromFile(const std::string& fileName)
 			{
 				// read in tile data
 				file.read((char*)&tempInt, sizeof(tempInt));
-				tiles[x][y].tile_type = (tempInt >> 22);
-				tempInt = tempInt & ~0xFF800000; // make sure the first 9 bits are 0;
-				tiles[x][y].orientation = (tempInt >> 18);
-				tempInt = tempInt & ~0xFFFC0000; // make sure the first 14 bits are 0;
-				tiles[x][y].height = (tempInt >> 8);
-				tempInt = tempInt & ~0xFFFFFF00; // make sure the first 24 bits are 0;
-				tiles[x][y].walkable = tempInt;
+				tiles[x][y].tile_type = EXTRACT(tempInt, WALKABLE_BITS + HEIGHT_BITS + ORIENTATION_BITS, TILE_COUNT_BITS);
+				tiles[x][y].orientation = EXTRACT(tempInt, WALKABLE_BITS + HEIGHT_BITS, ORIENTATION_BITS);
+				tiles[x][y].height = EXTRACT(tempInt, WALKABLE_BITS, HEIGHT_BITS);
+				tiles[x][y].walkable = EXTRACT(tempInt, 0, WALKABLE_BITS);
 
 				// check variable values
 				if(tiles[x][y].tile_type >= tile_count)
@@ -134,20 +135,15 @@ bool iso::worldMap::loadFromFile(const std::string& fileName)
 		for(unsigned int i = 0; i < object_count; ++i)
 		{
 			file.read((char*)&tempInt, sizeof(tempInt));
-			tempObject.x_pos = (tempInt >> 21);
-			tempInt = tempInt & ~0xFFE00000;
-			tempObject.y_pos = (tempInt >> 10);
-			tempInt = tempInt & ~0xFFFFFC00;
-			tempObject.height = tempInt;
+			tempObject.x_pos = EXTRACT(tempInt, Y_POS_BITS + HEIGHT_BITS, X_POS_BITS);
+			tempObject.y_pos = EXTRACT(tempInt, HEIGHT_BITS, Y_POS_BITS);
+			tempObject.height = EXTRACT(tempInt, 0, HEIGHT_BITS);
 
 			file.read((char*)&tempInt, sizeof(tempInt));
-			tempObject.texture = (tempInt >> 20);
-			tempInt = tempInt & ~0xFFF00000;
-			tempObject.draw_order = (tempInt >> 14);
-			tempInt = tempInt & ~0xFFFFC000;
-			tempObject.x_off = (tempInt >> 7);
-			tempInt = tempInt & ~0xFFFFFF80;
-			tempObject.y_off = tempInt;
+			tempObject.texture = EXTRACT(tempInt, Y_OFF_BITS + X_OFF_BITS + DRAW_ORDER_BITS, TEXTURE_COUNT_BITS);
+			tempObject.draw_order = EXTRACT(tempInt, Y_OFF_BITS + X_OFF_BITS, DRAW_ORDER_BITS);
+			tempObject.x_off = EXTRACT(tempInt, Y_OFF_BITS, X_OFF_BITS);
+			tempObject.y_off = EXTRACT(tempInt, 0, Y_OFF_BITS);
 			
 			// check variable values
 			if(tempObject.x_pos >= x_size || tempObject.y_pos >= y_size)
@@ -214,30 +210,26 @@ bool iso::worldMap::writeToFile(const std::string& fileName) const
 			textureDict[I->first] = tempIndex++;
 		}
 		// write the header
-		uint32_t tempInt;
-		tempInt = x_size;
-		tempInt = (tempInt << 11);
-		tempInt += y_size;
-		tempInt = (tempInt << 10);
-		tempInt += tileDict.size();
+		uint32_t tempInt = 0;
+		INSERT(tempInt, x_size, X_POS_BITS);
+		INSERT(tempInt, y_size, Y_POS_BITS);
+		INSERT(tempInt, tileDict.size(), TILE_COUNT_BITS);
 		file.write(reinterpret_cast<const char *>(&tempInt), sizeof(tempInt));
-
-		tempInt = object_count;
-		tempInt = (tempInt << 12);
-		tempInt += textureDict.size();
+		
+		tempInt = 0;
+		INSERT(tempInt, object_count, OBJECT_COUNT_BITS);
+		INSERT(tempInt, textureDict.size(), TEXTURE_COUNT_BITS);
 		file.write(reinterpret_cast<const char *>(&tempInt), sizeof(tempInt));
 		// now write each tile
 		for(unsigned int x = 0; x < x_size; ++x)
 		{
 			for(unsigned int y = 0; y < y_size; ++y)
 			{
-				tempInt = tileDict[tiles[x][y].tileName];
-				tempInt = (tempInt << 4);
-				tempInt += tiles[x][y].orientation;
-				tempInt = (tempInt << 10);
-				tempInt += tiles[x][y].height;
-				tempInt = (tempInt << 8);
-				tempInt += tiles[x][y].walkable;
+				tempInt = 0;
+				INSERT(tempInt, tileDict[tiles[x][y].tileName], TILE_COUNT_BITS);
+				INSERT(tempInt, tiles[x][y].orientation, ORIENTATION_BITS);
+				INSERT(tempInt, tiles[x][y].height, HEIGHT_BITS);
+				INSERT(tempInt, tiles[x][y].walkable, WALKABLE_BITS);
 				file.write(reinterpret_cast<const char *>(&tempInt), sizeof(tempInt));
 			}
 		}
@@ -248,20 +240,17 @@ bool iso::worldMap::writeToFile(const std::string& fileName) const
 			{
 				for(unsigned int i = 0; i < tiles[x][y].objects.size(); ++i)
 				{
-					tempInt = tiles[x][y].objects[i].x_pos;
-					tempInt = (tempInt << 11);
-					tempInt += tiles[x][y].objects[i].y_pos;
-					tempInt = (tempInt << 10);
-					tempInt += tiles[x][y].objects[i].height;
+					tempInt = 0;
+					INSERT(tempInt, tiles[x][y].objects[i].x_pos, X_POS_BITS);
+					INSERT(tempInt, tiles[x][y].objects[i].y_pos, Y_POS_BITS);
+					INSERT(tempInt, tiles[x][y].objects[i].height, HEIGHT_BITS);
 					file.write(reinterpret_cast<const char *>(&tempInt), sizeof(tempInt));
 
-					tempInt = tiles[x][y].objects[i].texture;
-					tempInt = (tempInt << 6);
-					tempInt += tiles[x][y].objects[i].draw_order;
-					tempInt = (tempInt << 7);
-					tempInt += tiles[x][y].objects[i].x_off;
-					tempInt = (tempInt << 7);
-					tempInt += tiles[x][y].objects[i].y_off;
+					tempInt = 0;
+					INSERT(tempInt, tiles[x][y].objects[i].texture, TEXTURE_COUNT_BITS);
+					INSERT(tempInt, tiles[x][y].objects[i].draw_order, DRAW_ORDER_BITS);
+					INSERT(tempInt, tiles[x][y].objects[i].x_off, X_OFF_BITS);
+					INSERT(tempInt, tiles[x][y].objects[i].y_off, Y_OFF_BITS);
 					file.write(reinterpret_cast<const char *>(&tempInt), sizeof(tempInt));
 				}
 			}
@@ -269,17 +258,20 @@ bool iso::worldMap::writeToFile(const std::string& fileName) const
 		// write tileDict
 		for(I = tileDict.cbegin(); I != tileDict.cend(); ++I)
 		{
-			file.write(I->first.c_str(), 12);
+			file.write(I->first.c_str(), TILE_NAME_LENGTH);
 		}
 
 		// write textureDict
 		for(I = textureDict.cbegin(); I != textureDict.cend(); ++I)
 		{
-			file.write(I->first.c_str(), 12);
+			file.write(I->first.c_str(), TEXTURE_NAME_LENGTH);
 		}
 
 		// make sure the file size is what we expected
-		std::streamoff maxByteSize = 8 + (x_size * y_size * 4) + (object_count * 8) + (tileDict.size() * 12) + (textureDict.size() * 12);
+		std::streamoff maxByteSize = ((X_POS_BITS + Y_POS_BITS + TILE_COUNT_BITS + OBJECT_COUNT_BITS + TEXTURE_COUNT_BITS) / 8 )
+			+ (x_size * y_size * (TILE_COUNT_BITS + ORIENTATION_BITS + HEIGHT_BITS + WALKABLE_BITS) / 8 )
+			+ (object_count * (X_POS_BITS + Y_POS_BITS + HEIGHT_BITS + TEXTURE_COUNT_BITS + DRAW_ORDER_BITS + X_OFF_BITS + Y_OFF_BITS) / 8 )
+			+ (tile_count * TILE_NAME_LENGTH) + (texture_count * TEXTURE_NAME_LENGTH);
 		std::streamoff fileByteSize = file.tellg();
 		file.close();
 		if(maxByteSize != fileByteSize)
@@ -297,10 +289,14 @@ bool iso::worldMap::writeToFile(const std::string& fileName) const
 	}
 }
 
+
 bool iso::worldMap::setSize(unsigned int x, unsigned int y)
 {
+	// 0 to 2047, where 0,0 is 1 tile and 2047,2047 is 2048x2048 tiles
+	// this is because a map can't have 0 tiles =D
+
 	// is the range valid?
-	if(x < 2048 && y < 2048 && x > 0 && y > 0)
+	if(x < X_POS_MAX && y < Y_POS_MAX)
 	{
 		// clear out objects if we are reducing size
 		if(x < x_size)
@@ -309,9 +305,9 @@ bool iso::worldMap::setSize(unsigned int x, unsigned int y)
 			{
 				// shrink x and y
 				// bottom part
-				for(unsigned int tempX = 0; tempX < x_size; ++tempX)
+				for(unsigned int tempX = 0; tempX <= x_size; ++tempX)
 				{
-					for(unsigned int tempY = y; tempY < y_size; ++tempY)
+					for(unsigned int tempY = y; tempY <= y_size; ++tempY)
 					{
 						changeTileIndex(tiles[tempX][tempY].tileName, -1);
 						while(tiles[tempX][tempY].objects.size() > 0)
@@ -321,9 +317,9 @@ bool iso::worldMap::setSize(unsigned int x, unsigned int y)
 					}
 				}
 				// side part (minus corner)
-				for(unsigned int tempX = x; tempX < x_size; ++tempX)
+				for(unsigned int tempX = x; tempX <= x_size; ++tempX)
 				{
-					for(unsigned int tempY = 0; tempY < y; ++tempY)
+					for(unsigned int tempY = 0; tempY <= y; ++tempY)
 					{
 						changeTileIndex(tiles[tempX][tempY].tileName, -1);
 						while(tiles[tempX][tempY].objects.size() > 0)
@@ -336,9 +332,9 @@ bool iso::worldMap::setSize(unsigned int x, unsigned int y)
 			}else
 			{
 				// shrink x only
-				for(unsigned int tempX = x; tempX < x_size; ++tempX)
+				for(unsigned int tempX = x; tempX <= x_size; ++tempX)
 				{
-					for(unsigned int tempY = 0; tempY < y_size; ++tempY)
+					for(unsigned int tempY = 0; tempY <= y_size; ++tempY)
 					{
 						changeTileIndex(tiles[tempX][tempY].tileName, -1);
 						while(tiles[tempX][tempY].objects.size() > 0)
@@ -351,9 +347,9 @@ bool iso::worldMap::setSize(unsigned int x, unsigned int y)
 		}else if(y < y_size)
 		{
 			// shrink y only
-			for(unsigned int tempX = 0; tempX < x_size; ++tempX)
+			for(unsigned int tempX = 0; tempX <= x_size; ++tempX)
 			{
-				for(unsigned int tempY = y; tempY < y_size; ++tempY)
+				for(unsigned int tempY = y; tempY <= y_size; ++tempY)
 				{
 					changeTileIndex(tiles[tempX][tempY].tileName, -1);
 					while(tiles[tempX][tempY].objects.size() > 0)
@@ -365,13 +361,13 @@ bool iso::worldMap::setSize(unsigned int x, unsigned int y)
 		}
 
 		// done clearing (if needed), resize the 2d vector		
-
-		tiles.resize(x);
-		for(unsigned int i = 0; i < x; ++i){
-			tiles[i].resize(y, worldTile(defaultTileName));
+		// we want 0 to x, so need to resize to x+1
+		tiles.resize(x+1);
+		for(unsigned int i = 0; i <= x; ++i){
+			tiles[i].resize(y+1, worldTile(defaultTileName));
 		}
 		// calculate the total number of tile changes
-		int tileAdditions = (x*y)-(x_size*y_size);
+		int tileAdditions = ((x+1)*(y+1))-((x_size+1)*(y_size+1));
 		if(tileAdditions >= 0)
 		{
 			// we added tiles with the default tile type
@@ -395,22 +391,22 @@ bool iso::worldMap::updateObject(const worldObject& whichObject)
 {
 	unsigned int x = whichObject.x_pos;
 	unsigned int y = whichObject.y_pos;
-	if(x >= x_size || y >= y_size)
+	if(x > x_size || y > y_size)
 	{
 		// TODO: error not valid size
 		return false;
 	}
-	if(whichObject.height >= 1024)
+	if(whichObject.height >= HEIGHT_MAX)
 	{
 		// TODO: error not valid height
 		return false;
 	}
-	if(whichObject.draw_order >= 64)
+	if(whichObject.draw_order >= DRAW_ORDER_MAX)
 	{
 		// TODO: error not a valid draw order
 		return false;
 	}
-	if(whichObject.x_off >= 128 || whichObject.y_off >= 128)
+	if(whichObject.x_off >= X_OFF_MAX || whichObject.y_off >= Y_OFF_MAX)
 	{
 		// TODO: error not a valid offset
 		return false;

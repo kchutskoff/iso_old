@@ -10,7 +10,7 @@ iso::textureDict::~textureDict(void)
 {
 }
 
-bool iso::textureDict::loadTextures(std::string filelist)
+bool iso::textureDict::loadTextureList(std::string filelist)
 {
 	const unsigned int buff_size = 128;
 	texture* temp = NULL;

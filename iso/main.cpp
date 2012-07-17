@@ -15,7 +15,7 @@ int main()
 	
 	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "ISO", sf::Style::Close);
 	iso::textureDict textureDB;
-	textureDB.loadTextures(TEXTURES_FILELIST);
+	textureDB.loadTextureList(TEXTURES_FILELIST);
 
 	// random drawing tests, ignore this stuff
 	iso::texture* grass0000 = textureDB.allocTexture("grass_0000"); // flat
@@ -39,9 +39,13 @@ int main()
         }
 
         window.clear();
-		unsigned int temp = sizeof(iso::worldMap::worldTile);
+		
+
+		unsigned int source = 2381;
+		unsigned int one = 0;
+
 		std::stringstream tempStream;
-		tempStream << temp;
+		tempStream << one;
 		myText.setString(tempStream.str());
 		
 		grass0000->draw(window, 0, 0);

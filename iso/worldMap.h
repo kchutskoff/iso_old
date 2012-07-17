@@ -5,8 +5,37 @@
 #include <fstream>
 #include <stdint.h>
 
+
 namespace iso
 {
+#define EXTRACT(SRC, POS, BITS) ((SRC) >> (POS)) & ((1<<(BITS))-1) 
+#define INSERT(DST, SRC, BITS) DST = ((DST)<<(BITS)) + (SRC)
+
+	const unsigned int X_POS_BITS = 11;
+	const unsigned int Y_POS_BITS = 11;
+	const unsigned int X_POS_MAX = 2048;
+	const unsigned int Y_POS_MAX = 2048;
+	const unsigned int HEIGHT_BITS = 10;
+	const unsigned int HEIGHT_MAX = 1024;
+	const unsigned int TEXTURE_COUNT_BITS = 12;
+	const unsigned int TEXTURE_COUNT_MAX = 4096;
+	const unsigned int OBJECT_COUNT_BITS = 20;
+	const unsigned int OBJECT_COUNT_MAX = 1048576;
+	const unsigned int DRAW_ORDER_BITS = 6;
+	const unsigned int DRAW_ORDER_MAX = 64;
+	const unsigned int X_OFF_BITS = 7;
+	const unsigned int Y_OFF_BITS = 7;
+	const unsigned int X_OFF_MAX = 128;
+	const unsigned int Y_OFF_MAX = 128;
+	const unsigned int TILE_COUNT_BITS = 10;
+	const unsigned int TILE_COUNT_MAX = 1024;
+	const unsigned int ORIENTATION_BITS = 4;
+	const unsigned int ORIENTATION_MAX = 16;
+	const unsigned int WALKABLE_BITS = 8;
+	const unsigned int WALKABLE_MAX = 256;
+	
+	const unsigned int TILE_NAME_LENGTH = 12;
+	const unsigned int TEXTURE_NAME_LENGTH = 12;
 
 class worldMap
 {
@@ -37,14 +66,14 @@ public:
 
 		~worldObject(){};
 		// using bitfields to save space
-		unsigned x_pos:11;
-		unsigned y_pos:11;
-		unsigned height:10;
-		unsigned texture:10;
-		unsigned draw_order:6;
-		unsigned x_off:7;
-		unsigned y_off:7;
-		char textureName[12];
+		unsigned x_pos:X_POS_BITS;
+		unsigned y_pos:Y_POS_BITS;
+		unsigned height:HEIGHT_BITS;
+		unsigned texture:TEXTURE_COUNT_BITS;
+		unsigned draw_order:DRAW_ORDER_BITS;
+		unsigned x_off:X_OFF_BITS;
+		unsigned y_off:Y_OFF_BITS;
+		char textureName[TEXTURE_NAME_LENGTH];
 	};
 
 	class worldTile
@@ -58,12 +87,12 @@ public:
 		{strcpy_s(tileName, tileType.c_str());}
 
 		// using bitfields to save space
-		unsigned tile_type:10;
-		unsigned orientation:4;
-		unsigned height:10;
-		unsigned walkable:8;
+		unsigned tile_type:TILE_COUNT_BITS;
+		unsigned orientation:ORIENTATION_BITS;
+		unsigned height:HEIGHT_BITS;
+		unsigned walkable:WALKABLE_BITS;
 		std::vector<worldObject> objects;
-		char tileName[12];
+		char tileName[TILE_NAME_LENGTH];
 	};
 
 	static const unsigned char walkable_TopLeft = 0x80;

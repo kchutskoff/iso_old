@@ -46,6 +46,8 @@ public:
 	void setLoop(bool isLoop);
 	bool getLoop(void) const;
 
+	unsigned int getAnimationLength(void);
+
 	unsigned int width(void) const;
 	unsigned int height(void) const;
 

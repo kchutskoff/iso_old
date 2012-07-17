@@ -101,3 +101,27 @@ The sections are in order.
       use an animated texture (good for water, trees, grass, etc).
     - Maps support 2048x2048 areas with 1024 levels of height, 1024 different tile types, 1 048 576 objects
       which use 4096 unique textures.
+
+============================================================================================================
+lst File
+
+    - A file which indexes textures and their information.
+============================================================================================================
+
+The sections are in order
+
+ == File Header ==
+ 
+     - 40 bits (from high to low)
+	 
+	     - 28  file_size (File size in bytes)
+		 - 12  texture_count
+		 
+	 - File size is stored so we can quickly check if the file is event remotely valid
+	 
+ == Texture Header ==
+ 
+	 - 152 bits (19 bytes, from high to low)
+	 
+		 - 6  frame_count
+		 - 

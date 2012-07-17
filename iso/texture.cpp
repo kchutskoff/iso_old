@@ -2,14 +2,8 @@
 
 
 iso::texture::texture(std::string file, std::string name, int x, int y, unsigned int w, unsigned int h, bool isAnimated, bool loops)
+	:tname(name), animate(isAnimated), rate(0), curFrame(0), dim_w(w), dim_h(w)
 {
-	tname = name;
-	animate = isAnimated;
-	rate = 0;
-	curFrame = 0;
-	dim_w = w;
-	dim_h = h;
-	
 	// add the first frame to the vector
 	frames.push_back(data(x, y, file));
 	// we don't keey track of width and height as they should always be the same (file and coordinates can vary though, although file shouldn't as sprite maps should be used).
@@ -55,6 +49,17 @@ void iso::texture::addFrame(std::string file, int x, int y)
 	}else{
 		// doesn't animate, don't add textures
 		// TODO: possible error?
+	}
+}
+
+unsigned int iso::texture::getAnimationLength(void)
+{
+	if(!animate)
+	{
+		return 0;
+	}else
+	{
+		return rate*frames.size();
 	}
 }
 

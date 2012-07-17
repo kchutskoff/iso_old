@@ -19,7 +19,7 @@ public:
 	textureDict(void);
 	~textureDict(void);
 
-	bool loadTextures(std::string filelist);
+	bool loadTextureList(std::string filelist);
 
 	texture* allocTexture(std::string name);
 	bool releaseTexture(texture* t);
