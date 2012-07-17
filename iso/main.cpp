@@ -4,6 +4,7 @@
 #include <string>
 #include "worldMap.h"
 #include <sstream>
+#include "tileType.h"
 
 
 const unsigned int WINDOW_WIDTH = 800;
@@ -29,6 +30,15 @@ int main()
 	test.writeToFile("testmap.map");
 	test.loadFromFile("testmap.map");
 
+	sf::Clock tempClock;
+	sf::Time tempTime = tempClock.getElapsedTime();
+	sf::Int64 sinceLast = tempTime.asMicroseconds();
+
+	sf::Texture testTexture;
+	testTexture.loadFromFile("textures\\environment\\grass.png", sf::IntRect(0, 0, 128, 128));
+	sf::Sprite testSprite;
+	testSprite.setTexture(testTexture);
+
 	while (window.isOpen())
     {
         sf::Event event;
@@ -37,26 +47,26 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
+		tempTime = tempClock.getElapsedTime();
+		sf::Int64 curTime = tempTime.asMicroseconds();
+		sf::Int64 uSince = curTime - sinceLast;
+		sinceLast = curTime;
 
         window.clear();
-		
-
-		unsigned int source = 2381;
-		unsigned int one = 0;
-
+		float fps = 0;
+		if(uSince != 0)
+		{
+			fps = 1000000/float(uSince);
+		}
 		std::stringstream tempStream;
-		tempStream << one;
+		tempStream << fps;
 		myText.setString(tempStream.str());
-		
-		grass0000->draw(window, 0, 0);
-		grass1111->draw(window, 128, 0);
-		grass0000->draw(window, 256, 0);
-		grass0000->draw(window, 64, 32);
-		grass0000->draw(window, 128+64, 32);
-		grass1111->draw(window, 256+64, 32);
-		grass0000->draw(window, 128, 64);
-		grass1100->draw(window, 256, 64);
-		grass1001->draw(window, 64, 96);
+
+		for(int x = 0; x < 300; x++)
+		{
+			testSprite.setPosition(rand()%800, rand()%600);
+			window.draw(testSprite);
+		}
 
 		window.draw(myText);
 
