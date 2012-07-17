@@ -34,11 +34,12 @@ private:
 	const static sf::IntRect BotRight;
 	const static sf::IntRect Right;
 
+	tileType(void);
+
 protected:
 	bool loadFromFile(std::string fileName);
 
 public:
-	tileType(void);
 	tileType(std::string name, std::string fileName);
 	~tileType(void);
 

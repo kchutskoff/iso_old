@@ -34,6 +34,11 @@ int main()
 	sf::Time tempTime = tempClock.getElapsedTime();
 	sf::Int64 sinceLast = tempTime.asMicroseconds();
 
+	sf::Texture testTexture;
+	testTexture.loadFromFile("textures\\environment\\grass.png", sf::IntRect(0, 0, 128, 128));
+	sf::Sprite testSprite;
+	testSprite.setTexture(testTexture);
+
 	while (window.isOpen())
     {
         sf::Event event;
@@ -56,6 +61,12 @@ int main()
 		std::stringstream tempStream;
 		tempStream << fps;
 		myText.setString(tempStream.str());
+
+		for(int x = 0; x < 300; x++)
+		{
+			testSprite.setPosition(rand()%800, rand()%600);
+			window.draw(testSprite);
+		}
 
 		window.draw(myText);
 
