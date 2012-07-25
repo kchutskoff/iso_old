@@ -5,6 +5,7 @@
 #include "worldMap.h"
 #include <sstream>
 #include "tileType.h"
+#include "PhysFS++.h"
 
 
 const unsigned int WINDOW_WIDTH = 800;
@@ -26,7 +27,7 @@ int main()
 
 	sf::Text myText;
 
-	iso::worldMap test = iso::worldMap("grass", 128, 128);
+	iso::worldMap test = iso::worldMap("grass", iso::worldMap::size(32, 32));
 	test.writeToFile("testmap.map");
 	test.loadFromFile("testmap.map");
 

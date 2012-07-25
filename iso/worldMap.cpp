@@ -97,10 +97,10 @@ void  iso::worldMap::worldObject::changeDrawOrder(const enum drawOrder& whichOrd
 		temp << "FATAL ERROR: Object does not exist at tile ("<<x_pos<<","<<y_pos<<") in function iso::worldMap::worldObject::changeDrawOrder!";
 		throw std::runtime_error(temp.str());
 	}
-
+	std::list<worldObject>::iterator I2;
 	switch(whichOrder){
-	case drawOrder::moveBackward:
-		std::list<worldObject>::iterator I2 = ++I;
+	case moveBackward:
+		I2 = ++I;
 		// if we aren't already at the end
 		if(I2 != objs->end())
 		{
@@ -109,17 +109,17 @@ void  iso::worldMap::worldObject::changeDrawOrder(const enum drawOrder& whichOrd
 			I2->draw_order--;
 		}
 		break;
-	case drawOrder::moveForward:
+	case moveForward:
 		// make sure we aren't at the front already
 		if(I != objs->begin())
 		{
-			std::list<worldObject>::iterator I2 = --I;
+			I2 = --I;
 			std::iter_swap(I2, I);
 			I->draw_order--;
 			I2->draw_order++;
 		}
 		break;
-	case drawOrder::moveToBack:
+	case moveToBack:
 		// if we aren't at the end already
 		if(I != ++objs->end())
 		{
@@ -135,7 +135,7 @@ void  iso::worldMap::worldObject::changeDrawOrder(const enum drawOrder& whichOrd
 			objs->erase(I); // dereferences I
 		}
 		break;
-	case drawOrder::moveToFront:
+	case moveToFront:
 		// if we aren't at the front already
 		if(I != objs->begin())
 		{

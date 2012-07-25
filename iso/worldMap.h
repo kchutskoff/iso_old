@@ -91,11 +91,11 @@ public:
 		
 		// Shouldn't be able to create worldObjects outside of the world map class.
 		worldObject():x_pos(0), y_pos(0), height(0), texture(0), draw_order(0), x_off(0), y_off(0)
-		{textureName[0] = '\0'; ID = worldObject.newID();}
+		{textureName[0] = '\0'; ID = newID();}
 
 		worldObject(worldMap& parent, location loc, unsigned int height, unsigned int xOffset, unsigned int yOffset, std::string textrName)
 			:parentMap(& parent), x_pos(loc.x), y_pos(loc.y), height(height), texture(0), draw_order(0), x_off(xOffset), y_off(yOffset)
-		{strcpy_s(textureName, textrName.c_str()); ID = worldObject.newID(); }
+		{strcpy_s(textureName, textrName.c_str()); ID = newID(); }
 
 	public:
 		
