@@ -76,12 +76,12 @@ unsigned int iso::texture::getAnimationLength(void)
 	}
 }
 
-unsigned int iso::texture::width(void) const
+unsigned int iso::texture::getWidth(void) const
 {
 	return dim_w;
 }
 
-unsigned int iso::texture::height(void) const
+unsigned int iso::texture::getHeight(void) const
 {
 	return dim_h;
 }
@@ -91,7 +91,7 @@ std::string iso::texture::name(void) const
 	return tname;
 }
 
-void iso::texture::loadTexture(void)
+void iso::texture::load(void)
 {
 	for(unsigned int i = 0; i < frames.size(); ++i)
 	{
@@ -103,7 +103,7 @@ void iso::texture::loadTexture(void)
 	}
 }
 
-void iso::texture::unloadTexture(void)
+void iso::texture::unload(void)
 {
 	for(unsigned int i = 0; i < frames.size(); ++i)
 	{
@@ -155,3 +155,5 @@ void iso::texture::resetAnimation(void)
 }
 
 sf::Sprite iso::texture::tempSprite;
+
+unsigned int iso::texture::maxTexture = sf::Texture::getMaximumSize();

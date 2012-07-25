@@ -1,5 +1,197 @@
 #include "worldMap.h"
 
+unsigned int iso::worldMap::worldObject::newID(void)
+{
+	if(unusedIDs.size() > 0)
+	{
+		unsigned int temp = unusedIDs.front();
+		unusedIDs.pop();
+		return temp;
+	}else
+	{
+		return ++IDcount;
+	}
+}
+
+void iso::worldMap::worldObject::releaseID(unsigned int ID)
+{
+	unusedIDs.push(ID);
+}
+
+// throws range_error on failure
+void iso::worldMap::worldObject::setXOffset(unsigned int xOff)
+{
+	if(xOff >= X_OFF_MAX)
+	{
+		std::stringstream temp;
+		temp << "Range Error: X Offset (" << xOff <<") larger than X_OFF_MAX (" << X_OFF_MAX <<") in function iso::worldMap::worldObject::setXOffset!";
+		throw std::range_error(temp.str());
+	}
+	x_off = xOff;
+}
+
+unsigned int iso::worldMap::worldObject::getXOffset(void) const
+{
+	return x_off;
+}
+
+// throws range_error on failure
+void iso::worldMap::worldObject::setYOffset(unsigned int yOff)
+{
+	if(yOff >= Y_OFF_MAX)
+	{
+		std::stringstream temp;
+		temp << "Range Error: Y Offset (" << yOff <<") larger than Y_OFF_MAX (" << Y_OFF_MAX <<") in function iso::worldMap::worldObject::setYOffset!";
+		throw std::range_error(temp.str());
+	}
+	y_off = yOff;
+}
+
+unsigned int iso::worldMap::worldObject::getYOffset(void) const
+{
+	return y_off;
+}
+
+// throws range_error on failure
+void iso::worldMap::worldObject::setHeight(unsigned int newHeight)
+{
+	if(newHeight >= HEIGHT_MAX)
+	{
+		std::stringstream temp;
+		temp << "Range Error: newHeight (" << newHeight <<") larger than HEIGHT_MAX (" << HEIGHT_MAX <<") in function iso::worldMap::worldObject::setHeight!";
+		throw std::range_error(temp.str());
+	}
+	height = newHeight;
+}
+	
+unsigned int iso::worldMap::worldObject::getHeight(void) const
+{
+	return height;
+}
+
+// throws runtime_error on failure
+void iso::worldMap::worldObject::setTextureName(const std::string& newTextureName){
+	if(newTextureName.size() >= TEXTURE_NAME_LENGTH)
+	{
+		std::stringstream temp;
+		temp << "Runtime Error: newTextureName (" << newTextureName <<") is longer than TEXTURE_NAME_LENGTH (" << TEXTURE_NAME_LENGTH <<") in function iso::worldMap::worldObject::setTextureName!";
+		throw std::runtime_error(temp.str());
+	}
+	strcpy_s(textureName, newTextureName.c_str());
+}
+
+std::string  iso::worldMap::worldObject::getTextureName(void) const
+{
+	return textureName;
+}
+
+void  iso::worldMap::worldObject::changeDrawOrder(const enum drawOrder& whichOrder)
+{
+	// get a pointer to the object vector (so we don't keep having to use parentMap->tiles...)
+	std::list<worldObject>* objs = & parentMap->tiles[x_pos][y_pos].objects;
+	std::list<worldObject>::iterator I = std::lower_bound(objs->begin(), objs->end(), this);
+	
+	if(I != objs->end() && *I == *this){
+		// object isn't in the map... something went terribly wrong
+		std::stringstream temp;
+		temp << "FATAL ERROR: Object does not exist at tile ("<<x_pos<<","<<y_pos<<") in function iso::worldMap::worldObject::changeDrawOrder!";
+		throw std::runtime_error(temp.str());
+	}
+
+	switch(whichOrder){
+	case drawOrder::moveBackward:
+		std::list<worldObject>::iterator I2 = ++I;
+		// if we aren't already at the end
+		if(I2 != objs->end())
+		{
+			std::iter_swap(I2, I);
+			I->draw_order++;
+			I2->draw_order--;
+		}
+		break;
+	case drawOrder::moveForward:
+		// make sure we aren't at the front already
+		if(I != objs->begin())
+		{
+			std::list<worldObject>::iterator I2 = --I;
+			std::iter_swap(I2, I);
+			I->draw_order--;
+			I2->draw_order++;
+		}
+		break;
+	case drawOrder::moveToBack:
+		// if we aren't at the end already
+		if(I != ++objs->end())
+		{
+			// then we need to bring I to the back, but first update draw orders
+			// we decrease the draw order for all objects after our object (as they are moving forward)
+			std::for_each(I, objs->end(), [&](worldObject& obj){obj.draw_order--;});
+			// and update our draw order
+			I->draw_order = objs->size() - 1;
+			// now place a new copy of the object at the end;
+			// explicitly call the copy constructor
+			objs->push_back(worldObject(*I));
+			// and remove the old object
+			objs->erase(I); // dereferences I
+		}
+		break;
+	case drawOrder::moveToFront:
+		// if we aren't at the front already
+		if(I != objs->begin())
+		{
+			// then we need to bring I to the front, but first update draw orders
+			// we increase the draw order for all objects between the front and our object (as they are moving backward)
+			std::for_each(objs->begin(), I, [&](worldObject& obj){obj.draw_order++;});
+			// and update our draw order
+			I->draw_order = 0;
+			// now place a new copy of the object at the end;
+			// explicitly call the copy constructor
+			objs->push_front(worldObject(*I));
+			// and remove the old object
+			objs->erase(I); // dereferences I
+		}
+		break;
+	default:
+		std::stringstream temp;
+		temp << "Error: Unknown enum drawOrder (" << whichOrder <<") passed in function iso::worldMap::worldObject::changeDrawOrder!";
+		throw std::runtime_error(temp.str());
+	}
+}
+
+unsigned int iso::worldMap::worldObject::getDrawOrder(void) const
+{
+	return draw_order;
+}
+
+void iso::worldMap::worldObject::changePosition(const location& newLoc)
+{
+	if(newLoc.x >= parentMap->x_size || newLoc.y >= parentMap->y_size)
+	{
+		std::stringstream temp;
+		temp <<"Error: newLoc ("<<newLoc.x<<","<<newLoc.y<<") is outside the the map's size!"<<parentMap->x_size<<","<<parentMap->y_size
+			<<") in function iso::worldMap::worldObject::changePosition!";
+		throw std::range_error(temp.str());
+	}
+	if(parentMap->tiles[newLoc.x][newLoc.y].objects.size() >= DRAW_ORDER_MAX)
+	{
+		std::stringstream temp;
+		temp << "Error: tile at newLoc ("<<newLoc.x<<","<<newLoc.y<<") already has the maximum number of objects in function iso::worldMap::worldObject::changePosition!";
+		throw std::runtime_error(temp.str());
+	}
+	// all checks out, update our objects position
+	//
+	// TODO: FINISH THIS
+	//
+	//
+}
+
+iso::worldMap::location iso::worldMap::worldObject::getPosition(void){
+	return location(x_pos, y_pos);
+}
+
+unsigned int iso::worldMap::worldObject::getID(void) const{
+	return ID;
+}
 
 iso::worldMap::worldMap(void)
 {
@@ -10,7 +202,7 @@ iso::worldMap::~worldMap(void)
 {
 }
 
-iso::worldMap::worldMap(const std::string& defaultTile, unsigned int x, unsigned int y)
+iso::worldMap::worldMap(const std::string& defaultTile, const iso::worldMap::size& newSize)
 {
 	defaultTileName = defaultTile;
 	x_size = 0;
@@ -18,11 +210,17 @@ iso::worldMap::worldMap(const std::string& defaultTile, unsigned int x, unsigned
 	tile_count = 0;
 	object_count = 0;
 	texture_count = 0;
-	if(!setSize(x, y))
+	try
 	{
-		// problem with size
-		setSize(1,1);
+		setSize(newSize);
+	}catch(std::range_error& e)
+	{
+		// pass along the error, tacking on some additional information
+		std::stringstream temp;
+		temp << e.what() << " in function iso::worldMap::worldMap!";
+		throw std::range_error(temp.str());
 	}
+		
 }
 
 
@@ -387,49 +585,21 @@ std::pair<unsigned int, unsigned int> iso::worldMap::getSize(void) const
 	return std::pair<unsigned int, unsigned int>(x_size, y_size);
 }
 
-bool iso::worldMap::updateObject(const worldObject& whichObject)
+bool iso::worldMap::updateObjectHeight(unsigned int x, unsigned int y, unsigned int drawOrder, unsigned int newHeight)
 {
-	unsigned int x = whichObject.x_pos;
-	unsigned int y = whichObject.y_pos;
-	if(x > x_size || y > y_size)
+	if(x >= X_POS_MAX || y >= Y_POS_MAX)
 	{
-		// TODO: error not valid size
 		return false;
 	}
-	if(whichObject.height >= HEIGHT_MAX)
+	if(newHeight >= HEIGHT_MAX)
 	{
-		// TODO: error not valid height
 		return false;
 	}
-	if(whichObject.draw_order >= DRAW_ORDER_MAX)
+	for(std::vector<worldObject>::iterator I = tiles[x][y].objects.begin(); I != tiles[x][y].objects.end(); ++I)
 	{
-		// TODO: error not a valid draw order
-		return false;
-	}
-	if(whichObject.x_off >= X_OFF_MAX || whichObject.y_off >= Y_OFF_MAX)
-	{
-		// TODO: error not a valid offset
-		return false;
-	}
-	// otherwise all good
-	// look for the object
-	for(unsigned int i = 0; i < tiles[x][y].objects.size(); ++i)
-	{
-		if(tiles[x][y].objects[i] == whichObject)
+		if(I->x_pos == x && I->y_pos == y && I->draw_order == drawOrder)
 		{
-			tiles[x][y].objects[i].draw_order = whichObject.draw_order;
-			tiles[x][y].objects[i].height = whichObject.height;
-			tiles[x][y].objects[i].x_off = whichObject.x_off;
-			tiles[x][y].objects[i].y_off = whichObject.y_off;
-			if(strcmp(tiles[x][y].objects[i].textureName, whichObject.textureName) != 0)
-			{
-				// updating texture as well
-				// dereference the texture
-				changeTextureIndex(tiles[x][y].objects[i].textureName, -1);
-				changeTextureIndex(whichObject.textureName, 1);
-				// and copy the name
-				strcpy_s(tiles[x][y].objects[i].textureName, whichObject.textureName);
-			}
+			I->height = newHeight;
 			return true;
 		}
 	}
@@ -438,7 +608,85 @@ bool iso::worldMap::updateObject(const worldObject& whichObject)
 	return false;
 }
 
-bool iso::worldMap::addObject(unsigned int x, unsigned int y, unsigned int height, std::string texture, unsigned int drawOrder, unsigned int x_off, unsigned int y_off)
+bool iso::worldMap::updateObjectTexture(unsigned int x, unsigned int y, unsigned int drawOrder, std::string texture)
+{
+	if(x >= X_POS_MAX || y >= Y_POS_MAX)
+	{
+		return false;
+	}
+	for(std::vector<worldObject>::iterator I = tiles[x][y].objects.begin(); I != tiles[x][y].objects.end(); ++I)
+	{
+		if(I->x_pos == x && I->y_pos == y && I->draw_order == drawOrder)
+		{
+			if(strcmp(I->textureName, texture.c_str()) != 0)
+			{
+				// new texture
+				changeTextureIndex(I->textureName, -1);
+				changeTextureIndex(texture, 1);
+				// and copy the name
+				strcpy_s(I->textureName, texture.c_str());
+			}
+			return true;
+		}
+	}
+	return false;
+	// not found
+}
+
+bool iso::worldMap::updateObjectOffset(unsigned int x, unsigned int y, unsigned int drawOrder, unsigned int x_off, unsigned int y_off)
+{
+	if(x >= X_POS_MAX || y >= Y_POS_MAX)
+	{
+		return false;
+	}
+	if(x_off >= X_OFF_MAX || y_off >= Y_OFF_MAX)
+	{
+		return false;
+	}
+	for(std::vector<worldObject>::iterator I = tiles[x][y].objects.begin(); I != tiles[x][y].objects.end(); ++I)
+	{
+		if(I->x_pos == x && I->y_pos == y && I->draw_order == drawOrder)
+		{
+			I->x_off = x_off;
+			I->y_off = y_off;
+			return true;
+		}
+	}
+}
+
+bool iso::worldMap::updateObjectDrawOrder(unsigned int x, unsigned int y, unsigned int oldDrawOrder, unsigned int newDrawOrder)
+{
+	if(x >= X_POS_MAX || y >= Y_POS_MAX)
+	{
+		return false;
+	}
+	std::vector<worldObject>::iterator I = std::lower_bound(tiles[x][y].objects.begin(), tiles[x][y].objects.end(), worldObject(x, y, oldDrawOrder, 0, 0, 0, ""));
+	if(I != tiles[x][y].objects.end())
+	{
+		std::vector<worldObject>::iterator I2 = std::lower_bound(tiles[x][y].objects.begin(), tiles[x][y].objects.end(), worldObject(x, y, newDrawOrder, 0, 0, 0, ""));
+		if( I->draw_order != newDrawOrder){
+			// alright to place
+			tiles[x][y].objects.insert(I2, 
+
+
+	}
+		/*
+	for(std::vector<worldObject>::iterator I = tiles[x][y].objects.begin(); I != tiles[x][y].objects.end(); ++I)
+	{
+		if(I->x_pos == x && I->y_pos == y && I->draw_order == oldDrawOrder)
+		{
+			// now we want to see if the draw order is available
+			std::vector<worldObject>::iterator otherI;
+			if(oldDrawOrder < newDrawOrder){
+				otherI = std::find(tiles[x][y].objects.begin(), I, worldObject(x, y, 0, newDrawOrder, 0, 0, ""));
+			}else{
+				otherI = std::binary_search(st
+		}
+
+	}*/
+}
+
+bool iso::worldMap::addObject(unsigned int x, unsigned int y, unsigned int drawOrder, unsigned int height, std::string texture, unsigned int x_off, unsigned int y_off)
 {
 	if(x >= x_size || y >= y_size)
 	{
@@ -476,6 +724,12 @@ bool iso::worldMap::addObject(unsigned int x, unsigned int y, unsigned int heigh
 	object_count++;
 	return true;
 }
+
+bool iso::worldMap::addObject(const worldObject& newObject)
+{
+	return true;
+}
+
 bool iso::worldMap::removeObject(const worldObject& whichObject)
 {
 	unsigned int x = whichObject.x_pos;
@@ -483,16 +737,14 @@ bool iso::worldMap::removeObject(const worldObject& whichObject)
 	if(x < x_size && y < y_size)
 	{
 		// look for the object
-		for(unsigned int i = 0; i < tiles[x][y].objects.size(); ++i)
+		for(std::vector<worldObject>::iterator I = tiles[x][y].objects.begin(); I != tiles[x][y].objects.end(); ++I)
 		{
-			if(tiles[x][y].objects[i] == whichObject)
+			if(*I == whichObject)
 			{
 				// dereference the texture
-				changeTextureIndex(whichObject.textureName, -1);
-				// swap with last element
-				tiles[x][y].objects[i] = tiles[x][y].objects[tiles[x][y].objects.size()-1];
-				// remove last element
-				tiles[x][y].objects.pop_back();
+				changeTextureIndex(I->textureName, -1);
+				// remove the object
+				tiles[x][y].objects.erase(I);
 				object_count--;
 				
 				return true;
@@ -625,3 +877,4 @@ void iso::worldMap::clear()
 	y_size = 0;
 	defaultTileName = "";
 }
+

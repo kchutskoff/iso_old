@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="iso::sprite" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAABCAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>sprite.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="iso::texture" Collapsed="true">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IEACAUAABABQAASkRAAgAAACAAAEBgCAAABgAQAAAQA=</HashCode>
+      <FileName>texture.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="iso::tileDict" Collapsed="true">
+    <Position X="0.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAAIAAAAAAAAAAiAAAAAIAAAAAAgAAAA=</HashCode>
+      <FileName>tileDict.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="iso::tileType" Collapsed="true">
+    <Position X="2.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQgCAAAAKDABAgJAEAAAAQIMAAAATEGUEEAAAEA=</HashCode>
+      <FileName>tileType.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="iso::worldMap" Collapsed="true">
+    <Position X="4" Y="1.5" Width="1.5" />
+    <NestedTypes>
+      <Class Name="iso::worldMap::worldObject" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>worldMap.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="iso::worldMap::worldTile" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>worldMap.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>IEAgoEHAAYAAAFggggAkACAAAgAAAAAAgAAQBAERqAA=</HashCode>
+      <FileName>worldMap.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

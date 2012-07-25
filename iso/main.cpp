@@ -59,12 +59,12 @@ int main()
 			fps = 1000000/float(uSince);
 		}
 		std::stringstream tempStream;
-		tempStream << fps;
+		tempStream << fps << "  " << sf::Texture::getMaximumSize();
 		myText.setString(tempStream.str());
 
 		for(int x = 0; x < 1000; x++)
 		{
-			testSprite.setPosition(rand()%800, rand()%600);
+			testSprite.setPosition(float(rand()%800), float(rand()%600));
 			window.draw(testSprite);
 		}
 

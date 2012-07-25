@@ -109,7 +109,7 @@ iso::texture* iso::textureDict::allocTexture(std::string name)
 	// check if initialized
 	if(i->second.first == 0){
 		// load the texture to memory
-		i->second.second->loadTexture();
+		i->second.second->load();
 	}
 
 	// increase the reference count
@@ -133,7 +133,7 @@ bool iso::textureDict::releaseTexture(texture& t)
 
 	// check if unreferenced
 	if(i->second.first == 0){
-		i->second.second->unloadTexture();
+		i->second.second->unload();
 	}
 	return false;
 }

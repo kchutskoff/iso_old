@@ -17,6 +17,8 @@ private:
 	unsigned int dim_w;
 	unsigned int dim_h;
 
+	static unsigned int maxTexture;
+
 	struct data
 	{
 	public:
@@ -39,7 +41,7 @@ private:
 	texture(void);
 
 public:
-	texture(std::string file, std::string name, int x, int y, unsigned int w, unsigned int h, bool isAnimated = false, bool isLoop = true);
+	texture(std::string file, std::string name, int x, int y, unsigned int w, unsigned int h, bool isAnimated = false, bool isLoop = false);
 	texture(const texture& other);
 	~texture(void);	
 
@@ -53,8 +55,10 @@ public:
 
 	unsigned int getAnimationLength(void);
 
-	unsigned int width(void) const;
-	unsigned int height(void) const;
+	unsigned int getWidth(void) const;
+	void setWidth(unsigned int);
+	unsigned int getHeight(void) const;
+	void setHeight(unsigned int);
 
 	std::string name(void) const;
 
@@ -64,8 +68,8 @@ public:
 
 	void resetAnimation(void);
 
-	void loadTexture(void);
-	void unloadTexture(void);
+	void load(void);
+	void unload(void);
 };
 
 }
